@@ -4,6 +4,23 @@
 #define RAM_SIZE 64000 //64 кбайт
 #define NUM_REGS 8
 
+typedef enum 
+{
+    MOV,
+    MOVB,
+    ADD,
+    CLR,
+    SOB,
+    BEQ,
+    BNE,
+    BR,
+    BPL,
+    JSR,
+    RTS,
+    HALT,
+    UNKNOWN
+} PDP11_FUNC;
+
 enum REGISTER
 {
     R0 = 0,
@@ -18,12 +35,29 @@ enum REGISTER
 
 typedef struct 
 {
+    char* name_metca;
+    int adrecc;
+} Metca;
+
+typedef struct 
+{
     uint8_t ram[RAM_SIZE];
     uint16_t reg_arr[NUM_REGS];
     uint8_t pwd;
+    size_t count_metca = 0;
+    int completion_ram = 0;
+    Metca metca_arr[64];
+
+    int flag_data_100 = 0;
+    int flag_data_200 = 0;
 
 } PDP_11;
 
 
+PDP_11* init();
+
+uint16_t read_comand_RAM(PDP_11* pdp_11);
+
+void dump_memory_words(PDP_11* pdp, uint16_t start_addr, uint16_t end_addr);
 
 #endif

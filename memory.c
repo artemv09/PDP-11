@@ -46,7 +46,6 @@ void dump_memory_words(PDP_11* pdp, uint16_t start_addr, uint16_t end_addr)
         for (int i = 15; i >= 0; i--) 
         {
             bin_str[15 - i] = (word & (1 << i)) ? '1' : '0';
-            if (i == 8) bin_str[15 - i] = ' ';
         }
         bin_str[16] = '\0';
         

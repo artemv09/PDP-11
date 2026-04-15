@@ -17,6 +17,8 @@ typedef enum
     BPL,
     JSR,
     RTS,
+    TSTB,
+    TST,
     HALT,
     UNKNOWN
 } PDP11_FUNC;
@@ -44,8 +46,11 @@ typedef struct
     uint8_t ram[RAM_SIZE];
     uint16_t reg_arr[NUM_REGS];
     uint8_t pwd;
-    size_t count_metca = 0;
-    int completion_ram = 0;
+
+    size_t count_metca = 0; // число меток
+
+    int completion_ram = 0; // указатель на память во время заполнения
+
     Metca metca_arr[64];
 
     int flag_data_100 = 0;

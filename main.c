@@ -8,6 +8,7 @@
 
 #include "memory.h"
 #include "compiler.h"
+#include "emulator.h"
 
 int main()
 {
@@ -27,8 +28,10 @@ int main()
     transfer_byte(processed_file, pdp_11);
     
     pdp_11 -> reg_arr[PC] = 1000;
+
     dump_memory_words(pdp_11, 1000, 1010);
 
+    execution_ram(pdp_11);
 
     return 0;
 }

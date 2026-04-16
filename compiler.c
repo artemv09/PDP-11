@@ -7,7 +7,7 @@
 #include <cstdint>
 
 #include "memory.h"
-#include "compiler.h"
+#include "compiler.h" 
 
 const char* pdp11_str[] = {"MOV", "MOVB", "ADD", "CLR", "SOB", "BEQ", "BNE", "BR", "BPL", "JSR", "RTS", "TSTB", "TST", "HALT"};
 
@@ -64,7 +64,6 @@ void transfer_file_code(FILE* file, PDP_11* pdp_11)
             *ptr_colon = '\0'; 
             
             pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
-            printf("[[[%s]]]", buffer);
             pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = count;
             pdp_11 -> count_metca++;         
         } 
@@ -307,7 +306,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
             }
             case BEQ:
             {
-                uint16_t low = 12;
+                uint16_t low = 20;
                 low = low << 8;
 
                 fscanf(file, "%s", buffer);  

@@ -33,5 +33,7 @@ int main()
 
     execution_ram(pdp_11);
 
+    //dump_memory_words(pdp_11, 1000, 1010);
+
     return 0;
 }

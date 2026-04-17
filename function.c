@@ -29,11 +29,15 @@ int function_execution(PDP_11* pdp_11, PDP11_FUNC type) // 1 если опере
             {
                 case 0:
                 {
-                    pdp_11 -> reg_arr[reg_2] = pdp_11 -> reg_arr[reg_1];
+                    pdp_11 -> reg_arr[reg_1] = pdp_11 -> reg_arr[reg_2];
                     break;
                 }
                 case 1:
-                {     
+                {  
+                    uint16_t copy = pdp_11 -> reg_arr[PC];
+                    pdp_11 -> reg_arr[PC] = pdp_11 -> reg_arr[reg_2]; 
+                    pdp_11 -> reg_arr[reg_1] = read_comand_RAM(pdp_11);
+                    pdp_11 -> reg_arr[PC] = copy;
                     break;
                 }
                 case 2:
@@ -41,13 +45,15 @@ int function_execution(PDP_11* pdp_11, PDP11_FUNC type) // 1 если опере
                     if(reg_2 == 7)
                     { 
                         pdp_11 -> reg_arr[PC] += 2;
-                        uint16_t in_reg = read_comand_RAM(pdp_11);
-                        pdp_11 -> reg_arr[reg_1] = in_reg;
+                        pdp_11 -> reg_arr[reg_1] = read_comand_RAM(pdp_11);
                     }
                     else
                     {
-                        pdp_11 -> reg_arr[PC] += 2;
+                        uint16_t copy = pdp_11 -> reg_arr[PC];
+                        pdp_11 -> reg_arr[PC] = pdp_11 -> reg_arr[reg_2]; 
+                        pdp_11 -> reg_arr[reg_2] += 2;
                         pdp_11 -> reg_arr[reg_1] = read_comand_RAM(pdp_11);
+                        pdp_11 -> reg_arr[PC] = copy;
                     }
                     break;
                 }
@@ -87,9 +93,8 @@ int function_execution(PDP_11* pdp_11, PDP11_FUNC type) // 1 если опере
                     printf("Ошибка в чтении моды, такой моды не существует\n");
                     break;
                 }
-            }
-                
-            }
+            }        
+        }
         case MOVB:
         {
            
@@ -97,10 +102,51 @@ int function_execution(PDP_11* pdp_11, PDP11_FUNC type) // 1 если опере
         }
         case ADD:
         {
+            uint16_t mod_1 = reading_mod(1, opcode);
+            uint16_t mod_2 = reading_mod(2, opcode);
+            uint16_t reg_1 = reading_reg_name(1, opcode);
+            uint16_t reg_2 = reading_reg_name(2, opcode);
+
+            if(mod_2 == 2)
+            {
+                pdp_11 -> reg_arr[PC] += 2;
+                uint16_t in_reg = read_comand_RAM(pdp_11);
+                pdp_11 -> reg_arr[reg_1] += (int)in_reg;
+                break;
+            }
+            pdp_11 -> reg_arr[reg_1] += pdp_11 -> reg_arr[reg_2];
             break;
         }
         case CLR:
-        {              
+        {  
+            uint16_t mod_1 = reading_mod(1, opcode);
+            uint16_t reg_1 = reading_reg_name(1, opcode);
+
+            switch (mod_1)
+            {
+                case 0:
+                {
+                    pdp_11 -> reg_arr[reg_1] = 0;
+                    break;
+                }
+                case 1:
+                {
+                    write_byte_ram(pdp_11, pdp_11 -> reg_arr[reg_1], 0);
+                    write_byte_ram(pdp_11, pdp_11 -> reg_arr[reg_1] + 1, 0);
+                    break;
+                }
+                case 2:
+                {
+                    write_byte_ram(pdp_11, pdp_11 -> reg_arr[reg_1], 0);
+                    write_byte_ram(pdp_11, pdp_11 -> reg_arr[reg_1] + 1, 0);
+
+                    pdp_11 -> reg_arr[reg_1] += 2;
+                    break;
+                }
+                default:
+                    break;
+            }
+
             break;
         }
         case SOB:

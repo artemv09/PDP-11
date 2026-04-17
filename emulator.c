@@ -20,7 +20,7 @@ CommandInfo commands[] = {
     
     // Условные переходы
     {BEQ, "BEQ", 0xFF00, 0x1400, 0},
-    {BNE, "BNE", 0xFF00, 0x1000, 0},
+    {BNE, "BNE", 0xFF00, 0x0C00, 0},
     {BPL, "BPL", 0xFF00, 0x8000, 0},
     
     // SOB
@@ -36,7 +36,7 @@ CommandInfo commands[] = {
     {ADD, "ADD", 0xF000, 0x6000, 0},
     
     // Однооперандные
-    {CLR, "CLR", 0xFF00, 0x5000, 0},
+    {CLR, "CLR", 0xFF00, 0x0A00, 0},
     {TST, "TST", 0xFF00, 0x5700, 0},
     {TSTB, "TSTB", 0xFF00, 0x5700, 1},  // бит 15 = 1 отличает от TST
     
@@ -53,7 +53,7 @@ void execution_ram(PDP_11* pdp_11)
 
     int count = 0;
     
-    while(type_func != HALT || count < 1)
+    while(type_func != HALT)
     {
         function_execution(pdp_11, type_func);
         type_func = defining_type_command(pdp_11);
@@ -73,7 +73,7 @@ PDP11_FUNC defining_type_command(PDP_11* pdp_11)
 
     int count = 0;
 
-    while((opcode & commands[count].mask) != commands[count].pattern)
+    while((opcode & commands[count].mask) != commands[count].pattern && count < 15)
     {
         count++;
     }

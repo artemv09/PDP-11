@@ -50,11 +50,17 @@ void execution_ram(PDP_11* pdp_11)
     pdp_11 -> reg_arr[PC] = 1000;
 
     PDP11_FUNC type_func = defining_type_command(pdp_11);
+
+    int count = 0;
     
-    while(type_func != HALT)
+    while(type_func != HALT || count < 1)
     {
         function_execution(pdp_11, type_func);
+        type_func = defining_type_command(pdp_11);
+        count++;
     }
+
+    out_reg(pdp_11);
 
     return;
 }

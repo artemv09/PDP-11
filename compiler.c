@@ -99,6 +99,7 @@ Arg parse_arg(char* str)
     }
     // Убираем пробелы
     char* s = buf;
+
     while (isspace(*s)) s++;
     
     // #n — непосредственное
@@ -120,7 +121,7 @@ Arg parse_arg(char* str)
     }
     
     // Определяем моду по первому символу
-    int mode = 0;
+    uint8_t mode = 0;
 
     if (s[0] == '@') 
     { 
@@ -140,7 +141,7 @@ Arg parse_arg(char* str)
 
     while (*reg_str && !isalpha(*reg_str) && !isdigit(*reg_str)) reg_str++;
     
-    int reg = 7;  // по умолчанию PC
+    uint8_t reg = 7;  // по умолчанию PC
     
     // Если это число — адрес
     if (isdigit(*reg_str) || *reg_str == '-') 
@@ -154,14 +155,15 @@ Arg parse_arg(char* str)
     // Регистры
     else 
     {
-             if (strcasecmp(reg_str, "R0") == 0) reg = 0;
-        else if (strcasecmp(reg_str, "R1") == 0) reg = 1;
-        else if (strcasecmp(reg_str, "R2") == 0) reg = 2;
-        else if (strcasecmp(reg_str, "R3") == 0) reg = 3;
-        else if (strcasecmp(reg_str, "R4") == 0) reg = 4;
-        else if (strcasecmp(reg_str, "R5") == 0) reg = 5;
-        else if (strcasecmp(reg_str, "SP") == 0) reg = 6;
-        else if (strcasecmp(reg_str, "PC") == 0) reg = 7;
+        reg_str++;
+             if (*reg_str == '0') reg = 0;
+        else if (*reg_str == '1') reg = 1;
+        else if (*reg_str == '2') reg = 2;
+        else if (*reg_str == '3') reg = 3;
+        else if (*reg_str == '4') reg = 4;
+        else if (*reg_str == '5') reg = 5;
+        else if (*reg_str == 'P') reg = 6;
+        else if (*reg_str == 'C') reg = 7;
     }
     
     arg.code = (mode << 3) | reg;

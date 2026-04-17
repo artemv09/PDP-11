@@ -65,4 +65,12 @@ uint16_t read_comand_RAM(PDP_11* pdp_11);
 
 void dump_memory_words(PDP_11* pdp, uint16_t start_addr, uint16_t end_addr);
 
+void write_word_ram(PDP_11* pdp_11, uint16_t addr, uint16_t value);
+
+uint8_t read_byte_ram(PDP_11* pdp_11, uint16_t addr);
+
+void write_byte_ram(PDP_11* pdp_11, uint16_t addr, uint8_t value);
+
+void out_reg(PDP_11* pdp_11);
+
 #endif

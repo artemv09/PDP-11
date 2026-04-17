@@ -55,3 +55,26 @@ void dump_memory_words(PDP_11* pdp, uint16_t start_addr, uint16_t end_addr)
 
     printf("└────────────┴────────────┴────────────┴──────────────────┘\n");
 }
+
+void write_word_ram(PDP_11* pdp_11, uint16_t addr, uint16_t value)
+{
+    pdp_11 -> ram[addr] = value & 0xFF;
+    pdp_11 -> ram[addr + 1] = (value >> 8) & 0xFF;
+}
+
+uint8_t read_byte_ram(PDP_11* pdp_11, uint16_t addr)
+{
+    return pdp_11 -> ram[addr];
+}
+
+void write_byte_ram(PDP_11* pdp_11, uint16_t addr, uint8_t value)
+{
+    pdp_11 -> ram[addr] = value;
+}
+
+void out_reg(PDP_11* pdp_11)
+{
+    printf("R0 = %d  R1 = %d  R2 = %d  R3 = %d  R4 = %d  R5 = %d  SP = %d  PC = %d\n", 
+            pdp_11 -> reg_arr[0], pdp_11 -> reg_arr[1], pdp_11 -> reg_arr[2], pdp_11 -> reg_arr[3],
+            pdp_11 -> reg_arr[4], pdp_11 -> reg_arr[5], pdp_11 -> reg_arr[6], pdp_11 -> reg_arr[7]);
+}   

@@ -28,6 +28,7 @@ PDP11_FUNC get_func(char* buffer)
 char* delet_comment(char* buffer) 
 {
     char *ptr = strchr(buffer, ';'); 
+
     if (ptr != NULL) 
     {
         *ptr = '\n';    
@@ -54,25 +55,10 @@ void transfer_file_code(FILE* file, PDP_11* pdp_11)
 
         if (buffer[0] == '\n' || buffer[0] == '\0') 
         {
-            continue;
+            count -= 2; 
         }
 
-        char* ptr_colon = strchr(buffer, ':'); 
-
-        if (ptr_colon != NULL) 
-        {
-            *ptr_colon = '\0'; 
-            
-            pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
-            pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = count;
-            pdp_11 -> count_metca++;         
-        } 
-        else 
-        {
-            fprintf(processed_file, "%s", buffer);
-            count += 2; 
-        }
-
+        fprintf(processed_file, "%s", buffer);
         memset(buffer, 0, buf_size);
     }
 
@@ -83,7 +69,6 @@ void transfer_file_code(FILE* file, PDP_11* pdp_11)
     return;
 }
 
-//==============================================================
 Arg parse_arg(char* str) 
 {
     Arg arg = {0};
@@ -168,15 +153,6 @@ Arg parse_arg(char* str)
     
     arg.code = (mode << 3) | reg;
 
-    char bin_str[17];
-        for (int i = 15; i >= 0; i--) 
-        {
-            bin_str[15 - i] = (arg.code & (1 << i)) ? '1' : '0';
-            if (i == 8) bin_str[15 - i] = ' ';
-        }
-        bin_str[16] = '\0';
-        printf("[[%s]]", bin_str);
-
     return arg;
 }
 //==============================================================
@@ -251,6 +227,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 low = low << 12;
 
                 writing_memory(file, pdp_11, low);
+                
 
                 break;
             }
@@ -291,11 +268,11 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
 
                 int adrecc = metca_found(buffer, pdp_11);
 
-                int x = ((pdp_11 -> completion_ram) + 2 - adrecc) / 2;
+                uint8_t x = (uint8_t)((pdp_11 -> completion_ram) + 2 - adrecc) / 2;
 
                 arg1.code &= ~0x38;
 
-                uint16_t rez = low | (arg1.code << 6) | (uint8_t) x;
+                uint16_t rez = low | (arg1.code << 6) | x;
 
                 uint16_t copy_rez = rez;
 
@@ -303,6 +280,16 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
 
                 pdp_11 -> ram[(pdp_11 -> completion_ram) + 1] = copy_rez >> 8;
 
+                pdp_11 -> completion_ram += 2;
+
+                char bin_str[17];
+                for (int i = 15; i >= 0; i--) 
+                {
+                    bin_str[15 - i] = (rez & (1 << i)) ? '1' : '0';
+                    if (i == 8) bin_str[15 - i] = ' ';
+                }
+                bin_str[16] = '\0';
+                printf("[[%s]]", bin_str);
 
                 break;
             }
@@ -426,7 +413,20 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 pdp_11 -> completion_ram += 2;
                 break;
             }
-            default:
+            case UNKNOWN:
+            {
+                char* ptr_colon = strchr(buffer, ':'); 
+
+                if (ptr_colon != NULL) 
+                {
+                    *ptr_colon = '\0'; 
+                    
+                    pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
+                    pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = pdp_11 -> completion_ram;  
+                    pdp_11 -> count_metca++;
+                }
+            }
+            default:    
                 break;
         }
     }

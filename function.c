@@ -151,6 +151,21 @@ int function_execution(PDP_11* pdp_11, PDP11_FUNC type) // 1 если опере
         }
         case SOB:
         {
+            // найдем имя регистра
+            uint16_t reg_2 = reading_reg_name(2, opcode);
+
+            if(pdp_11 -> reg_arr[reg_2] == 0)
+            {
+                printf("Цикл завершен\n");
+            }
+            else
+            {
+                uint16_t mack = 0x003F;
+                uint16_t cdvig = opcode & mack;
+
+                pdp_11 -> reg_arr[PC] -= cdvig * 2;
+                pdp_11 -> reg_arr[reg_2] -= 1;
+            }
             break;
         }
         case BEQ:

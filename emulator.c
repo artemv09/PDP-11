@@ -24,7 +24,7 @@ CommandInfo commands[] = {
     {BPL, "BPL", 0xFF00, 0x8000, 0},
     
     // SOB
-    {SOB, "SOB", 0xFE00, 0x3E00, 0},
+    {SOB, "SOB", 0xFE00, 0x7E00, 0},
     
     // JSR и RTS
     {JSR, "JSR", 0xFC00, 0x0400, 0},
@@ -53,7 +53,7 @@ void execution_ram(PDP_11* pdp_11)
 
     int count = 0;
     
-    while(type_func != HALT)
+    while(type_func != HALT && type_func != UNKNOWN)
     {
         function_execution(pdp_11, type_func);
         type_func = defining_type_command(pdp_11);
@@ -73,7 +73,7 @@ PDP11_FUNC defining_type_command(PDP_11* pdp_11)
 
     int count = 0;
 
-    while((opcode & commands[count].mask) != commands[count].pattern && count < 15)
+    while((opcode & commands[count].mask) != commands[count].pattern && count < 16)
     {
         count++;
     }

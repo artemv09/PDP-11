@@ -26,4 +26,10 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11);
 
 uint8_t* transfer_byte(FILE* file, PDP_11* pdp_11);
 
+int completion_data_string(FILE* file, PDP_11* pdp_11);
+
+int completion_data_seg(FILE* file, PDP_11* pdp_11);
+
+int byte_type_definition(char* name);
+
 #endif

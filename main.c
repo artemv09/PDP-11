@@ -12,10 +12,12 @@
 
 int main()
 {
+    printf("привет\n");
     PDP_11* pdp_11 = init();
 
     FILE* file = fopen("code.txt", "r");
     transfer_file_code(file, pdp_11);
+    fclose(file);
 
     FILE* processed_file = fopen("processed_file.txt", "r");
 
@@ -29,7 +31,7 @@ int main()
     
     pdp_11 -> reg_arr[PC] = 1000;
 
-    dump_memory_words(pdp_11, 1000, 1010);
+    dump_memory_words(pdp_11, 100, 110);
 
     execution_ram(pdp_11);
 

@@ -63,7 +63,6 @@ void transfer_file_code(FILE* file, PDP_11* pdp_11)
     }
 
     free(buffer);
-    fclose(file);
     fclose(processed_file);
 
     return;
@@ -195,7 +194,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
 
     char buffer[64];
 
-    while(fscanf(file, "%s", buffer) != EOF)
+    while(fscanf(file, "%s", buffer) != EOF && buffer[0] != '.')
     {
         switch (get_func(buffer))
         {
@@ -413,7 +412,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 pdp_11 -> completion_ram += 2;
                 break;
             }
-            case UNKNOWN:
+            case UNKNOWN: // используется для записи сюда
             {
                 char* ptr_colon = strchr(buffer, ':'); 
 
@@ -468,11 +467,14 @@ uint8_t* transfer_byte(FILE* file, PDP_11* pdp_11)
         }
         else if(strcmp(buffer, "200") == 0)
         {
-            //completion_data_string(file, pdp_11);
+            completion_data_string(file, pdp_11);
         }
         else if(strcmp(buffer, "100") == 0)
         {
-            //completion_data_seg(file, pdp_11);
+            printf("1\n");
+            completion_data_seg(file, pdp_11);
+
+            fscanf(file, "%s", buffer);
         }
         else
         {
@@ -482,4 +484,112 @@ uint8_t* transfer_byte(FILE* file, PDP_11* pdp_11)
     }
 
     return NULL;
+}
+
+int completion_data_string(FILE* file, PDP_11* pdp_11)
+{
+    return 0;
+}
+
+int completion_data_seg(FILE* file, PDP_11* pdp_11)
+{
+    // составить масси в меток указывающих куда то;
+    pdp_11 -> completion_ram = 100;
+
+    char buffer[64];
+    fscanf(file, "%s", buffer);
+
+    while(*buffer != '.')
+    {
+        // будем считывать по одному массиву 
+        char* colon = strchr(buffer, ':');
+        *colon = '\0';
+
+        pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
+        pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = pdp_11 -> completion_ram;
+        pdp_11 -> count_metca += 1;
+
+        // определение типа аргументов
+        fscanf(file, "%s", buffer);
+        
+        switch(byte_type_definition(buffer))
+        {
+            case 1:
+            {
+                fscanf(file, "%s", buffer);
+                while(strchr(buffer, ',') != NULL)
+                {
+                    printf("%s\n", buffer);
+                    char* zap = strchr(buffer, ',');
+                    if(zap != NULL)
+                    {
+                        *zap = '\0';
+                    }
+
+                    pdp_11 -> ram[pdp_11 -> completion_ram] = atoi(buffer);
+                    pdp_11 -> completion_ram += 1;
+
+                    fscanf(file, "%s", buffer);
+                }
+
+                pdp_11 -> ram[pdp_11 -> completion_ram] = atoi(buffer);
+                pdp_11 -> completion_ram += 1;
+
+                fscanf(file, "%s", buffer);
+
+                pdp_11 -> completion_ram = pdp_11 -> completion_ram + (pdp_11 -> completion_ram) % 2;
+
+                break;
+            }
+            case 2:
+            {
+                fscanf(file, "%s", buffer);
+
+                while(strchr(buffer, ',') != NULL)
+                {
+                    printf("%s\n", buffer);
+                    char* zap = strchr(buffer, ',');
+                    if(zap != NULL)
+                    {
+                        *zap = '\0';
+                    }
+
+                    write_word_ram(pdp_11, pdp_11 -> completion_ram, (uint16_t) atoi(buffer));
+                    pdp_11 -> completion_ram += 2;
+
+                    fscanf(file, "%s", buffer);
+                }
+
+                write_word_ram(pdp_11, pdp_11 -> completion_ram, (uint16_t) atoi(buffer));
+                pdp_11 -> completion_ram += 2;
+
+                fscanf(file, "%s", buffer);
+
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return 0;
+}
+
+
+int byte_type_definition(char* name)
+{
+    if(strcmp(name, ".WORD") == 0)
+    {
+        return 2;
+    }
+    else if(strcmp(name, ".BYTE") == 0)
+    {
+        return 1;
+    }
+    //потом модно добавить типы
+    else
+    {
+        printf("Не существвует такого типа данных в seg . = 100\n");
+        return 0;
+    }
 }

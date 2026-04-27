@@ -16,11 +16,13 @@ char* delet_comment(char* buffer);
 
 void transfer_file_code(FILE* file, PDP_11* pdp_11) ;
 
-Arg parse_arg(const char* str);
+Arg parse_arg(const char* str, PDP_11* pdp_11);
 
 void writing_memory(FILE* file, PDP_11* pdp_11, uint16_t low);
 
 int metca_found(char* buffer, PDP_11* pdp_11);
+
+void read_metca_first(FILE* file, PDP_11* pdp_11);
 
 void completion_code_seg(FILE* file, PDP_11* pdp_11);
 

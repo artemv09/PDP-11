@@ -30,7 +30,7 @@ int main()
     
     pdp_11 -> reg_arr[PC] = 1000;
 
-    dump_memory_words(pdp_11, 100, 1010);
+    dump_memory_words(pdp_11, 1000, 1010);
 
     execution_ram(pdp_11);
 

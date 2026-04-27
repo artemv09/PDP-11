@@ -68,7 +68,7 @@ void transfer_file_code(FILE* file, PDP_11* pdp_11)
     return;
 }
 
-Arg parse_arg(char* str) 
+Arg parse_arg(char* str, PDP_11* pdp_11) 
 {
     Arg arg = {0};
     char buf[64];
@@ -90,8 +90,19 @@ Arg parse_arg(char* str)
     if (s[0] == '#') 
     {
         arg.code = (2 << 3) | 7;  // mode=2, reg=7
-        arg.imm = (s[1] == '\'') ? s[2] : atoi(s + 1);
-        arg.has_imm = 1;
+
+        int local_metca = metca_found(s + 1, pdp_11);
+
+        if(local_metca != -1) // s+1 указатель на имя иметки до \0
+        {
+            arg.imm = local_metca;
+            arg.has_imm = 1;
+        }
+        else
+        {
+            arg.imm = (s[1] == '\'') ? s[2] : atoi(s + 1);
+            arg.has_imm = 1;
+        }
         return arg;
     }
     
@@ -160,10 +171,10 @@ void writing_memory(FILE* file, PDP_11* pdp_11, uint16_t low)
 {
     char buffer[64];
     fscanf(file, "%s", buffer);
-    Arg arg1 = parse_arg(buffer);
+    Arg arg1 = parse_arg(buffer, pdp_11);
 
     fscanf(file, "%s", buffer);
-    Arg arg2 = parse_arg(buffer);
+    Arg arg2 = parse_arg(buffer, pdp_11);
 
     uint16_t rez = low | (arg1.code << 6) | arg2.code;
 
@@ -207,10 +218,10 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
 
                 char buffer[64];
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 fscanf(file, "%s", buffer);
-                Arg arg2 = parse_arg(buffer);
+                Arg arg2 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | (arg1.code << 6) | arg2.code;
 
@@ -235,10 +246,10 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
 
                 char buffer[64];
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 fscanf(file, "%s", buffer);
-                Arg arg2 = parse_arg(buffer);
+                Arg arg2 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | (arg1.code << 6) | arg2.code;
 
@@ -263,10 +274,10 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
 
                 char buffer[64];
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 fscanf(file, "%s", buffer);
-                Arg arg2 = parse_arg(buffer);
+                Arg arg2 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | (arg1.code << 6) | arg2.code;
 
@@ -290,7 +301,7 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
                 low = low << 6;  
 
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | arg1.code;
 
@@ -306,7 +317,7 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
                 low = low << 9;
 
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 fscanf(file, "%s", buffer);
                 char* str = strchr(buffer, '\n');
@@ -314,16 +325,6 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
                 {
                     *str = '\0';
                 }
-
-                int adrecc = metca_found(buffer, pdp_11);
-
-                uint8_t x = (uint8_t)((pdp_11 -> completion_ram) + 2 - adrecc) / 2;
-
-                arg1.code &= ~0x38;
-
-                uint16_t rez = low | (arg1.code << 6) | x;
-
-                uint16_t copy_rez = rez;
 
                 pdp_11 -> completion_ram += 2;
 
@@ -336,16 +337,6 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
 
                 fscanf(file, "%s", buffer);  
 
-                int label_address = metca_found(buffer, pdp_11);
-
-                int pc_after = (pdp_11 -> completion_ram) + 2;
-
-                int offset = (label_address - pc_after) / 2;
-
-                uint8_t offset_byte = (uint8_t)(offset & 0xFF);
-
-                uint16_t rez = low | offset_byte;
-
                 pdp_11 -> completion_ram += 2;
                 break;
             }
@@ -355,16 +346,6 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
                 low = low << 8;
 
                 fscanf(file, "%s", buffer);  
-
-                int label_address = metca_found(buffer, pdp_11);
-
-                int pc_after = (pdp_11 -> completion_ram) + 2;
-
-                int offset = (label_address - pc_after) / 2;
-
-                uint8_t offset_byte = (uint8_t)(offset & 0xFF);
-
-                uint16_t rez = low | offset_byte;
 
                 pdp_11 -> completion_ram += 2;
                 break;
@@ -400,7 +381,7 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
 
                 fscanf(file, "%s", buffer);
 
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | arg1.code;
 
@@ -417,7 +398,7 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
 
                 fscanf(file, "%s", buffer);
 
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | arg1.code;
 
@@ -439,7 +420,7 @@ void read_metca_first(FILE* file, PDP_11* pdp_11)
                 if (ptr_colon != NULL) 
                 {
                     *ptr_colon = '\0'; 
-                    
+                    //printf("[[%s]] %d \n", buffer, pdp_11 -> completion_ram);
                     pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
                     pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = pdp_11 -> completion_ram;  
                     pdp_11 -> count_metca++;
@@ -499,7 +480,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 low = low << 6;  
 
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | arg1.code;
 
@@ -519,7 +500,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 low = low << 9;
 
                 fscanf(file, "%s", buffer);
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 fscanf(file, "%s", buffer);
                 char* str = strchr(buffer, '\n');
@@ -561,7 +542,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 low = low << 8;
 
                 fscanf(file, "%s", buffer);  
-
+                printf("мы стоим на BEQ = %s\n", buffer);
                 int label_address = metca_found(buffer, pdp_11);
 
                 int pc_after = (pdp_11 -> completion_ram) + 2;
@@ -603,20 +584,54 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
             }
             case BR:
             {
-                uint16_t low = 6;
-                low = low << 12;
+                uint16_t low = 4;
+                low = low << 8;
+
+                fscanf(file, "%s", buffer);  
+
+                int label_address = metca_found(buffer, pdp_11);
+
+                int pc_after = (pdp_11 -> completion_ram) + 2;
+
+                int offset = (label_address - pc_after) / 2;
+
+                uint8_t offset_byte = (uint8_t)(offset & 0xFF);
+
+                uint16_t rez = low | offset_byte;
+
+                pdp_11 -> ram[pdp_11 -> completion_ram]     = rez & 0xFF;        // младший байт
+                pdp_11 -> ram[pdp_11 -> completion_ram + 1] = (rez >> 8) & 0xFF; // старший байт
+
+                pdp_11 -> completion_ram += 2;
                 break;
             }
             case BPL:
             {
-                uint16_t low = 6;
-                low = low << 12;
+                uint16_t low = 128;
+                low = low << 8;
+
+                fscanf(file, "%s", buffer);  
+
+                int label_address = metca_found(buffer, pdp_11);
+
+                int pc_after = (pdp_11 -> completion_ram) + 2;
+
+                int offset = (label_address - pc_after) / 2;
+
+                uint8_t offset_byte = (uint8_t)(offset & 0xFF);
+
+                uint16_t rez = low | offset_byte;
+
+                pdp_11 -> ram[pdp_11 -> completion_ram]     = rez & 0xFF;        // младший байт
+                pdp_11 -> ram[pdp_11 -> completion_ram + 1] = (rez >> 8) & 0xFF; // старший байт
+
+                pdp_11 -> completion_ram += 2;
                 break;
             }
             case JSR:
             {
-                uint16_t low = 6;
-                low = low << 12;
+                uint16_t low = 1;
+                low = low << 10;
                 break;
             }
             case RTS:
@@ -632,7 +647,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
 
                 fscanf(file, "%s", buffer);
 
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | arg1.code;
 
@@ -653,7 +668,7 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
 
                 fscanf(file, "%s", buffer);
 
-                Arg arg1 = parse_arg(buffer);
+                Arg arg1 = parse_arg(buffer, pdp_11);
 
                 uint16_t rez = low | arg1.code;
 
@@ -683,12 +698,12 @@ void completion_code_seg(FILE* file, PDP_11* pdp_11)
                 {
                     *ptr_colon = '\0'; 
                     
-                    pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
-                    pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = pdp_11 -> completion_ram;  
-                    pdp_11 -> count_metca++;
+                    //pdp_11 -> metca_arr[pdp_11 -> count_metca].name_metca = strdup(buffer);
+                    //pdp_11 -> metca_arr[pdp_11 -> count_metca].adrecc = pdp_11 -> completion_ram;  
+                    //pdp_11 -> count_metca++;
                 }
             }
-            default:    
+            default:  
                 break;
         }
     }
@@ -710,9 +725,9 @@ int metca_found(char* buffer, PDP_11* pdp_11)
         }
     }
 
-    printf("такой метки не существует\n");
+    //printf("такой метки не существует\n");
 
-    return 0;
+    return -1;
 }
 
 uint8_t* transfer_byte(FILE* file, PDP_11* pdp_11)
@@ -727,7 +742,7 @@ uint8_t* transfer_byte(FILE* file, PDP_11* pdp_11)
         if(strcmp(buffer, "1000") == 0)
         {
             //теперь мы дважды проходимся соберая все метки, а уже потом записывает в RAM
-            
+
             long pos = ftell(file);
             FILE *copy = fopen("processed_file.txt", "r");
             fseek(copy, pos, SEEK_SET);
@@ -789,7 +804,7 @@ int completion_data_seg(FILE* file, PDP_11* pdp_11)
                 fscanf(file, "%s", buffer);
                 while(strchr(buffer, ',') != NULL)
                 {
-                    printf("%s\n", buffer);
+                    //printf("%s\n", buffer);
                     char* zap = strchr(buffer, ',');
                     if(zap != NULL)
                     {
@@ -817,7 +832,7 @@ int completion_data_seg(FILE* file, PDP_11* pdp_11)
 
                 while(strchr(buffer, ',') != NULL)
                 {
-                    printf("%s\n", buffer);
+                    //printf("%s\n", buffer);
                     char* zap = strchr(buffer, ',');
                     if(zap != NULL)
                     {

@@ -27,7 +27,7 @@ CommandInfo commands[] = {
     {SOB, "SOB", 0xFE00, 0x7E00, 0},
     
     // JSR и RTS
-    {JSR, "JSR", 0xFC00, 0x0400, 0},
+    {JSR, "JSR", 0xFE00, 0x0400, 0},
     {RTS, "RTS", 0xFFF0, 0x0200, 0},
     
     // Двухоперандные
